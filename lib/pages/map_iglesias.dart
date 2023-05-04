@@ -112,6 +112,44 @@ class _MapIglesiasState extends State<MapIglesias>
     }
   }
 
+  void mybuscador(String busqueda) async {
+    try {
+      var headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-Authorization": "ipue ${box.read('token')}",
+      };
+
+      String distancia = "5";
+
+      var url = Uri.parse(
+          "${IpueColors.urlHost}/getIglesiasSearch.php?texto=$busqueda");
+      var response = await http.get(url, headers: headers);
+      var decodeJson = jsonDecode(response.body);
+
+      print("datos: ");
+      print(response.body);
+
+      circleMarkers = [
+        CircleMarker(
+            point: LatLng(latitud, longitud),
+            color: IpueColors.cPrimario.withOpacity(.5),
+            borderStrokeWidth: 1,
+            borderColor: IpueColors.cSecundario,
+            useRadiusInMeter: true,
+            radius: double.parse("5000") // radio // 2000 meters | 2 km
+            ),
+      ];
+
+      setState(() {
+        listaIglesias = IglesiasModel.fromJson(decodeJson);
+        numEncontrados = listaIglesias.iglesias!.length.toString();
+      });
+    } finally {
+      // _myLocation();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -322,6 +360,9 @@ class _MapIglesiasState extends State<MapIglesias>
               ),
               Expanded(
                 child: TextField(
+                  onChanged: (value) {
+                    mybuscador(value);
+                  },
                   style: const TextStyle(color: IpueColors.cBlanco),
                   controller: controlBuscar,
                   decoration: const InputDecoration(
